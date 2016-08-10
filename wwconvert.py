@@ -11,7 +11,7 @@ from __future__ import print_function
 import csv
 
 # Format of WebWork .lst for student import is
-# [password],[lastname],[firstname],C,,,, ,[username]@uga.edu,,[username]
+# [password],[lastname],[firstname],C,,,, [username]@uga.edu,[username]
 
 def studentdict_to_webwork(sdict):
     """
@@ -24,7 +24,7 @@ def studentdict_to_webwork(sdict):
 
     try:
         return ("{password},{lastname},{firstname}"
-                ",C,,,,\t,{username}@uga.edu,,{username}").format(**sdict)
+                ",C,,,,\t{username}@uga.edu,{username}").format(**sdict)
     except KeyError:
         return None
 
