@@ -52,7 +52,7 @@ def iterate_athena_csv_file(csvfile):
     """
     iterate_athena_csv_file(csvfile)
 
-    Iterates through list of {password, lastname, firstname, myid}, one
+    Yields iterates of {password, lastname, firstname, myid}, one
     per student, for conversion to WebWork format
     """
 
