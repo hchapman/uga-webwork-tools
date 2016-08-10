@@ -1,102 +1,59 @@
 <html>
   <head>
       <title>WebWork Classlist Converter</title>
-      <script type="text/javascript" src="papaparse.min.js"></script>
-      <script type="text/javascript">
-
-       function handleFiles(files) {
-           /* Take an imported file and place its data in #csvfile on load
-            */
-           for (var i = 0, numFiles = files.length; i < numFiles; i++) {
-               var file = files[i];
-
-               var reader = new FileReader();
-               reader.onload = (function(aParent) { return function(e) {
-                   aParent.value = e.target.result;
-               }; })(document.getElementById("csvdata"));
-               reader.readAsText(file);
+      <script type="text/javascript" src="libjs/papaparse.min.js"></script>
+      <script type="text/javascript" src="libjs/clipboard.min.js"></script>
+      <script type="text/javascript" src="wwconvert.js"></script>
+      <style type="text/css">
+           .textdump {
+               width: 100%;
+               height: 10em; 
            }
-       }
-
-       function athenaFullnameToLastname(fullname) {
-           /* Given fullname Lastname, Firstname, M., return the student's last
-              name, usually "Lastname" */
-           return fullname.split(",")[0];
-       }
-
-       function ugaEmailToUsername(email) {
-           /* Given a UGA email "myid@uga.edu", return myid. We are probably
-              guaranteed not to have any "\@" or other confusing characters. */
-           return email.split("@")[0];
-       }
-
-       function convertAthenaCSV(data) {
-           /* Parse CSV into list of {password, lastname, firstname, myid},
-              one per student, for conversion to WebWork format
-
-              First row of Athena CSV file is header row
-              Important columns of Athena CSV file are (0-indexed):
-              1: Preferred first name; we use this as firstname
-              2: Last, First, M.; we grab up to the comma as lastname
-              3: UGA ID; we use this as password
-              9: Email in fmt [username]@uga.edu; grepped appropriately */
-
-           var res = Papa.parse(data, {skipEmptyLines: true});
-           var students = new Array();
-
-           // First row is header information, which we don't need
-           for (var i = 1, numStudents = res.data.length;
-                i < numStudents; i++) {
-               students.push({
-                   password: res.data[i][3],
-                   lastname: athenaFullnameToLastname(res.data[i][2]),
-                   firstname: res.data[i][1],
-                   username: ugaEmailToUsername(res.data[i][9]),
-               });
-           }
-
-           return students;
-       }
-
-       function convertStudentsToWW(students) {
-           /* Given a list of dicts with keys password, lastname, firstname,
-              username, return a valid row for WebWork lst import. If data is
-              incomplete, return None. */
-           var wwdata = new Array();
-           for (var i = 0, numStudents = students.length;
-                i < numStudents; i++) {
-               var student = students[i];
-               wwdata.push([
-                   student.password,
-                   student.lastname,
-                   student.firstname,
-                   "C",
-                   "", "", "", "\t"+student.username+"@uga.edu",
-                   student.username
-               ].join(","));
-           }
-
-           return wwdata.join("\n");
-       }
-
-       function convertData() {
-           /* Take data in #csvdata, convert it, and place it in #lstdata */
-           var data = document.getElementById("csvdata").value;
-
-           students = convertAthenaCSV(data);
-           lststr = convertStudentsToWW(students);
-
-           document.getElementById("lstdata").value = lststr;
-       }
-
-      </script>
+      </style>
   </head>
   <body>
-      <input type="file" id="csvupload" onchange="handleFiles(this.files)"><br>
-      <textarea id="csvdata">
-      </textarea>
-      <input type="button" id="convert" onclick="convertData()" value="Convert!">
-      <textarea id="lstdata">
-      </textarea>
+      <h1>Athena CSV &#8614; WebWork .lst converter</h1>
+      <p>This webpage will let you load (or paste) an UGA Athena CSV export file
+          into the standard format for WebWork .lst import suggested at
+          <a href="http://www.math.uga.edu/webwork"">the WebWork FAQ</a>.</p>
+      <p>All of the code is local javascript that should work in a modern
+          browser (I've tested a new version of Chrome) and should <em>involve
+          no network calls beyond the initial page load</em>. This means that
+          this webapp should be entirely safe to use with your students'
+          sensitive data! I however make no guarantee of this, and you are
+          advised to either
+          <a href="https://github.com/hchapman/uga-webwork-tools">read the
+              source</a>
+          yourself, or not use the service.</p>
+      <h2>1. Upload or paste your Athena CSV data</h2>
+      <input type="file" id="csvupload"
+             onchange="loadFileToTextarea(this.files, this.dataset.dstid)"
+             data-dstid="csvdata"><br>
+      <textarea id="csvdata"
+                class="textdump"></textarea><br>
+      <h2>2. Click the convert button</h2>
+      <input type="button" id="convert"
+             onclick="convertData(this.dataset.srcid, this.dataset.dstid)"
+             value="Convert!"
+             data-srcid="csvdata"
+             data-dstid="lstdata"><br>
+      <h2>3. Copy the WebWork .lst formatted data into WebWork</h2>
+      <textarea id="lstdata"
+                class="textdump"></textarea>
+      <input type="button" id="copybutton" value="Copy to Clipboard"
+             data-clipboard-target="#lstdata"
+             data-tooltip="#copyinfo">
+      <span id="copyinfo"></span>
   </body>
+  <script type="text/javascript">
+   var clipboard = new Clipboard("#copybutton");
+   clipboard.on('success', function(e) {
+       var tip = document.querySelector(e.trigger.dataset.tooltip);
+       tip.innerHTML = "Copied!";
+   });
+   clipboard.on('error', function(e) {
+       var tip = document.querySelector(e.trigger.dataset.tooltip);
+       tip.innerHTML = "Press &#8984;+C or Ctrl+C to copy!";
+   });
+  </script>
 </html>
