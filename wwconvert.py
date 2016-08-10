@@ -87,6 +87,12 @@ def convert_athena_csv_file(f):
     return lstdata
 
 def save_webwork_lst(lstdata, ofile):
+    """
+    save_webwork_lst(lstdata, ofile)
+
+    Save webwork list data (lines in a list, lstdata) to ofile
+    (possibly stdout)
+    """
     for line in lstdata:
         print(line, file=ofile)
 
