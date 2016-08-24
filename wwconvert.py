@@ -24,7 +24,7 @@ def studentdict_to_webwork(sdict):
 
     try:
         return ("{password},{lastname},{firstname}"
-                ",C,,,,\t{username}@uga.edu,{username}").format(**sdict)
+                ",C,,{section},,\t{username}@uga.edu,{username}").format(**sdict)
     except KeyError:
         return None
 
@@ -52,7 +52,7 @@ def iterate_athena_csv_file(csvfile):
     """
     iterate_athena_csv_file(csvfile)
 
-    Yields iterates of {password, lastname, firstname, myid}, one
+    Yields iterates of {password, lastname, firstname, section, myid}, one
     per student, for conversion to WebWork format
     """
 
@@ -62,6 +62,7 @@ def iterate_athena_csv_file(csvfile):
     # 2: Last, First, M.; we grab up to the comma as lastname
     # 3: UGA ID; we use this as password
     # 9: Email in fmt [username]@uga.edu; grepped appropriately
+    # 10: Section ID (CRN)
     athreader = csv.reader(csvfile)
     header = athreader.next() # Grab the header row
     for row in athreader:
@@ -69,6 +70,7 @@ def iterate_athena_csv_file(csvfile):
             'password': row[3],
             'lastname': athena_fullname_to_lastname(row[2]),
             'firstname': row[1],
+            'section': row[10],
             'username': uga_email_to_username(row[9]),
         }
 
